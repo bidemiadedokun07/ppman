@@ -1,0 +1,25 @@
+# Core web framework (retrieval pipeline / API)
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+python-dotenv==1.0.1
+
+# Google Cloud / Vertex AI
+google-cloud-aiplatform==1.70.0
+google-cloud-storage==2.18.2
+google-cloud-secret-manager==2.20.2
+cloud-sql-python-connector[pg8000]==1.12.0
+pg8000==1.31.2
+
+# Vector similarity is served entirely by Vertex AI Vector Search (see
+# ingestion/embed_and_upload.py and backend/retrieval.py); no local vector
+# library is needed.
+numpy==1.26.4
+
+# Ingestion: document parsing
+pypdf==5.0.1
+pandas==2.2.3
+openpyxl==3.1.5
+
+# Utilities
+tenacity==9.0.0

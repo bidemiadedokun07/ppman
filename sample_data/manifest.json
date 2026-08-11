@@ -1,0 +1,13 @@
+{
+  "_comment": "Format: 'workbook_filename.xlsx::SheetName' -> classification. See Design Document Section 2 for why this split matters. Delete this comment key before running (it is ignored, but real JSON parsers may complain).",
+
+  "example_reference_workbook.xlsx::Facilities": {
+    "type": "reference",
+    "key_column": "Name"
+  },
+
+  "example_analytical_workbook.xlsx::Inspections": {
+    "type": "analytical",
+    "table_name": "inspections_analytical"
+  }
+}

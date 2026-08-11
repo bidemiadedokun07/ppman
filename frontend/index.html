@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pipeman Test Console</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Pipeman <span>test console</span></h1>
+    <div class="role-picker">
+      <label for="role">Test as role:</label>
+      <select id="role">
+        <option value="public">public</option>
+        <option value="sme">sme</option>
+        <option value="new_hire">new_hire</option>
+      </select>
+      <input id="apiBase" type="text" value="http://localhost:8080" title="Backend URL">
+    </div>
+  </header>
+
+  <main id="chat"></main>
+
+  <form id="composer">
+    <input id="question" type="text" placeholder="Ask Pipeman a question..." autocomplete="off" required>
+    <button type="submit">Send</button>
+  </form>
+
+  <script src="app.js"></script>
+</body>
+</html>

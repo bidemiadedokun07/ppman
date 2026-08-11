@@ -1,0 +1,46 @@
+# Cloud Build CI/CD pipeline for the Pipeman backend.
+# Triggered on push to the repository (see Execution Guide, Section 7, for
+# connecting this to a GitHub/Cloud Source Repositories trigger).
+#
+# Stages: build -> scan -> push -> deploy to staging -> (manual) promote.
+# This is the "simple enterprise standard CI/CD" referenced in the design:
+# one pipeline, one tool (Cloud Build), security scanning built in rather
+# than bolted on.
+
+steps:
+  # 1. Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/pipeman-backend:${SHORT_SHA}", "."]
+
+  # 2. Push to Artifact Registry (triggers automatic vulnerability scanning)
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/pipeman-backend:${SHORT_SHA}"]
+
+  # 3. Deploy to the staging Cloud Run service
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "pipeman-backend-staging"
+      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/pipeman-backend:${SHORT_SHA}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--no-allow-unauthenticated"
+      - "--set-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}"
+      - "--update-secrets=CLOUDSQL_DB_PASSWORD=pipeman-db-password:latest"
+
+# Promotion to production is a separate, manual `gcloud run deploy
+# pipeman-backend-prod` step gated on a human approval, not part of this
+# automatic trigger (see Execution Guide, Section 7).
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/pipeman-backend:${SHORT_SHA}"
+
+substitutions:
+  _REGION: us-central1
+  _REPO: pipeman-repo
+  _CLOUDSQL_CONNECTION_NAME: your-project:us-central1:pipeman-db
+
+options:
+  logging: CLOUD_LOGGING_ONLY

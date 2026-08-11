@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars and fill in your own project ID.
+project_id  = "your-project-id"
+region      = "us-central1"
+environment = "sandbox"
+
+# Uncomment to reduce cost further, or size up for real testing load.
+# cloudsql_tier               = "db-f1-micro"
+# vector_search_machine_type  = "e2-standard-2"
+# vector_search_min_replicas  = 1
