@@ -7,7 +7,12 @@
 # ============================================================
 
 locals {
-  name_prefix = "pipeman-${var.environment}"
+  name_prefix   = "pipeman-${var.environment}"
+  cloudbuild_sa = "${data.google_project.current.number}@cloudbuild.gserviceaccount.com"
+}
+
+data "google_project" "current" {
+  project_id = var.project_id
 }
 
 # ---------------------------------------------------------------
@@ -53,6 +58,56 @@ resource "google_project_iam_member" "app_cloudsql_client" {
 resource "google_project_iam_member" "app_secret_accessor" {
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.pipeman_app.email}"
+}
+
+# ---------------------------------------------------------------
+# 2b. Cloud Build's own service account: newer projects do not
+#     auto-grant this broad permissions, so pushing images and
+#     deploying Cloud Run both need to be explicitly authorized.
+# ---------------------------------------------------------------
+resource "google_project_iam_member" "cloudbuild_artifact_writer" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${local.cloudbuild_sa}"
+}
+
+resource "google_project_iam_member" "cloudbuild_run_developer" {
+  project = var.project_id
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${local.cloudbuild_sa}"
+}
+
+# Deploying Cloud Run with a specific runtime service account (below)
+# requires the deployer to be allowed to "act as" that service account.
+resource "google_service_account_iam_member" "cloudbuild_act_as_app" {
+  service_account_id = google_service_account.pipeman_app.name
+  role                = "roles/iam.serviceAccountUser"
+  member              = "serviceAccount:${local.cloudbuild_sa}"
+}
+
+# ---------------------------------------------------------------
+# 2c. Your Cloud Build trigger runs AS pipeman_app (not Cloud
+#     Build's default service account), confirmed via
+#     `gcloud builds describe ... --format="value(serviceAccount)"`.
+#     Grant the permissions the build itself needs directly to this
+#     identity, since that is the one actually executing the build.
+# ---------------------------------------------------------------
+resource "google_project_iam_member" "app_artifact_writer" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.pipeman_app.email}"
+}
+
+resource "google_project_iam_member" "app_run_developer" {
+  project = var.project_id
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${google_service_account.pipeman_app.email}"
+}
+
+resource "google_project_iam_member" "app_log_writer" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.pipeman_app.email}"
 }
 
