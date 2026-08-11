@@ -29,6 +29,7 @@ steps:
       - "--no-allow-unauthenticated"
       - "--set-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}"
       - "--update-secrets=CLOUDSQL_DB_PASSWORD=pipeman-sandbox-db-password:latest"
+      - "--service-account=${_APP_SERVICE_ACCOUNT}"
 
 # Promotion to production is a separate, manual `gcloud run deploy
 # pipeman-backend-prod` step gated on a human approval, not part of this
@@ -41,6 +42,7 @@ substitutions:
   _REGION: us-central1
   _REPO: pipeman-sandbox-repo
   _CLOUDSQL_CONNECTION_NAME: ppm-knowledge-assist:us-central1:pipeman-sandbox-db
+  _APP_SERVICE_ACCOUNT: pipeman-sandbox-app@ppm-knowledge-assist.iam.gserviceaccount.com
 
 options:
   logging: CLOUD_LOGGING_ONLY
